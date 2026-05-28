@@ -1,0 +1,83 @@
+version: 2
+
+# Bronze sources — populated by fixtures/load_bronze.py from the seven OLTP-dump CSVs.
+# These are the ONLY raw inputs your dbt models may read. Never `ref()` or query
+# anything outside `bronze.*`.
+
+sources:
+  - name: bronze
+    schema: bronze
+    description: "Raw OLTP dump from the Rundle ecommerce backend, loaded daily as CSVs."
+    tables:
+      - name: customers
+        description: "One row per active customer at extract time."
+        columns:
+          - name: customer_id
+            description: "Natural key. Stable across extracts."
+            tests:
+              - unique
+              - not_null
+          - name: country_code
+            description: "ISO-3166 alpha-2. Joins bronze.countries.country_code."
+            tests:
+              - not_null
+
+      - name: products
+        description: "One row per active SKU. ~2% of names are mid-period rewrites (SCD1)."
+        columns:
+          - name: product_id
+            tests:
+              - unique
+              - not_null
+
+      - name: channels
+        description: "Sales channel reference (web, ios, android, kiosk, partner)."
+        columns:
+          - name: channel_id
+            tests:
+              - unique
+              - not_null
+
+      - name: countries
+        description: "ISO country reference; the conformed source for dim_country."
+        columns:
+          - name: country_code
+            tests:
+              - unique
+              - not_null
+
+      - name: dates
+        description: "Calendar reference covering 2023-01-01..2025-12-31."
+        columns:
+          - name: date_key
+            tests:
+              - unique
+              - not_null
+
+      - name: orders
+        description: "One row per order. Carries order_date AND ship_date — role-playing dim_date is built from here."
+        columns:
+          - name: order_id
+            tests:
+              - unique
+              - not_null
+          - name: customer_id
+            description: "References bronze.customers.customer_id BUT ~0.5% of orders point at an unknown customer (late-arriving). Decide how to handle this in staging."
+            tests:
+              - not_null
+
+      - name: order_lines
+        description: "One row per (order_id, line_number). This is the future fact grain."
+        columns:
+          - name: order_id
+            tests:
+              - not_null
+          - name: line_number
+            tests:
+              - not_null
+          - name: product_id
+            tests:
+              - not_null
+              - relationships:
+                  to: source('bronze', 'products')
+                  field: product_id

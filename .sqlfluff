@@ -1,0 +1,33 @@
+[sqlfluff]
+dialect = postgres
+templater = dbt
+runaway_limit = 10
+max_line_length = 120
+indent_unit = space
+# Reasonable defaults for dbt projects — keep the noise low but block the things
+# that hurt readability or production review.
+exclude_rules = LT05, ST06, AM04, RF01
+
+[sqlfluff:indentation]
+tab_space_size = 4
+
+[sqlfluff:templater:dbt]
+project_dir = ./
+profiles_dir = ./.dbt
+profile = rundle_warehouse
+target = dev
+
+[sqlfluff:rules:capitalisation.keywords]
+capitalisation_policy = lower
+
+[sqlfluff:rules:capitalisation.identifiers]
+extended_capitalisation_policy = lower
+
+[sqlfluff:rules:capitalisation.functions]
+extended_capitalisation_policy = lower
+
+[sqlfluff:rules:capitalisation.literals]
+capitalisation_policy = lower
+
+[sqlfluff:rules:capitalisation.types]
+extended_capitalisation_policy = lower

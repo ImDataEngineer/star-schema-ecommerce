@@ -1,0 +1,44 @@
+{
+  "name": "IAmDataEng — star-schema-ecommerce",
+  "image": "mcr.microsoft.com/devcontainers/python:3.11-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+  "forwardPorts": [5432],
+  "portsAttributes": {
+    "5432": {
+      "label": "Postgres (rundle warehouse)",
+      "onAutoForward": "silent"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "innoverio.vscode-dbt-power-user",
+        "samuelcolvin.jinjahtml",
+        "ckolkman.vscode-postgres"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.testing.pytestEnabled": true,
+        "python.testing.pytestArgs": ["tests"],
+        "files.associations": {
+          "*.sql": "jinja-sql"
+        }
+      }
+    }
+  },
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "remoteUser": "vscode",
+  "containerEnv": {
+    "DBT_PROFILES_DIR": "${containerWorkspaceFolder}/.dbt",
+    "PGHOST": "localhost",
+    "PGPORT": "5432",
+    "PGUSER": "rundle",
+    "PGPASSWORD": "rundle_dev_password",
+    "PGDATABASE": "rundle_warehouse"
+  }
+}

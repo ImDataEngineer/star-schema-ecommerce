@@ -1,0 +1,33 @@
+# Copy this file to .dbt/profiles.yml (the post-create script does it automatically).
+# Then point dbt at it with --profiles-dir .dbt or DBT_PROFILES_DIR=./.dbt.
+#
+# Two targets:
+#   - dev:  what you use day-to-day from the Codespace shell.
+#   - ci:   what the GitHub Actions workflow uses (same host, secrets via env).
+#
+# Both read the bronze schema and write to marts + staging.
+
+rundle_warehouse:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: "{{ env_var('PGHOST', 'localhost') }}"
+      port: "{{ env_var('PGPORT', '5432') | int }}"
+      user: "{{ env_var('PGUSER', 'rundle') }}"
+      password: "{{ env_var('PGPASSWORD', 'rundle_dev_password') }}"
+      dbname: "{{ env_var('PGDATABASE', 'rundle_warehouse') }}"
+      schema: marts
+      threads: 4
+      keepalives_idle: 0
+
+    ci:
+      type: postgres
+      host: "{{ env_var('PGHOST', 'localhost') }}"
+      port: "{{ env_var('PGPORT', '5432') | int }}"
+      user: "{{ env_var('PGUSER', 'rundle') }}"
+      password: "{{ env_var('PGPASSWORD', 'rundle_dev_password') }}"
+      dbname: "{{ env_var('PGDATABASE', 'rundle_warehouse') }}"
+      schema: marts
+      threads: 2
+      keepalives_idle: 0

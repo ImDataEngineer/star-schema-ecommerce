@@ -1,0 +1,41 @@
+# IAmDataEng — modeling.star-schema-ecommerce
+#
+# Project layout:
+#   models/staging/  — one stg_* model per bronze table (light typing/renaming).
+#   models/marts/    — dim_*.sql (conformed dims) and fct_*.sql (one fact, declared grain).
+#
+# All models materialize as TABLE in Postgres by default. Staging models could be views,
+# but a learner inspecting EXPLAIN plans benefits from physical tables.
+
+name: "rundle_warehouse"
+version: "1.0.0"
+config-version: 2
+
+profile: "rundle_warehouse"
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  rundle_warehouse:
+    staging:
+      +materialized: view
+      +schema: staging
+    marts:
+      +materialized: table
+      +schema: marts
+
+# Test severity: a failed dbt test fails CI. Warnings are not enough for a Kimball
+# model — grain violations and FK orphans MUST hard-fail.
+tests:
+  +severity: error
+  +store_failures: true
+  +schema: dbt_test_failures

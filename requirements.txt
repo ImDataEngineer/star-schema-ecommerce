@@ -1,0 +1,16 @@
+# IAmDataEng — modeling.star-schema-ecommerce
+#
+# dbt-core and dbt-postgres pinned to the same minor (1.7.x).
+# Mismatched minors between core and adapter is the #1 source of cryptic
+# "AttributeError: 'NoneType' object has no attribute ..." reports.
+dbt-core==1.7.18
+dbt-postgres==1.7.17
+
+# SQL linter — committed configuration uses the postgres dialect.
+sqlfluff==3.2.5
+sqlfluff-templater-dbt==3.2.5
+
+# Bronze loader + tests.
+psycopg2-binary==2.9.10
+pyyaml==6.0.2
+pytest==8.3.4

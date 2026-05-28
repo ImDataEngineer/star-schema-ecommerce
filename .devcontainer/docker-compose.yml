@@ -1,0 +1,40 @@
+# Postgres 16 for the IAmDataEng star-schema-ecommerce project.
+#
+# Purpose: stand in for Rundle's OLTP dump, loaded into the `bronze` schema,
+# from which the learner builds staging, dim_* and fct_* models with dbt.
+#
+# Connection (also surfaced via container env vars in devcontainer.json):
+#   host:     localhost
+#   port:     5432
+#   user:     rundle
+#   password: rundle_dev_password
+#   database: rundle_warehouse
+#
+# This is dev-only. Never reuse the password.
+
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-bookworm
+    container_name: iamdataeng-rundle-warehouse
+    environment:
+      POSTGRES_USER: rundle
+      POSTGRES_PASSWORD: rundle_dev_password
+      POSTGRES_DB: rundle_warehouse
+      # Faster commit on the seed insert path; safe for a dev DB that lives in a
+      # devcontainer (we lose data on container destroy, by design).
+      POSTGRES_INITDB_ARGS: "--data-checksums"
+    ports:
+      - "5432:5432"
+    volumes:
+      - rundle_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rundle -d rundle_warehouse"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+volumes:
+  rundle_pgdata:

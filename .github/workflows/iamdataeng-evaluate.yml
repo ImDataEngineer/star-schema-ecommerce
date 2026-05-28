@@ -1,0 +1,87 @@
+name: iamdataeng-evaluate
+
+# Triggered on every push to any branch. The IAmDataEng app listens to the
+# `workflow_run` webhook for this exact workflow name and ingests the verdict
+# into the learner's dashboard. DO NOT rename this workflow.
+
+on:
+  push:
+    branches:
+      - "**"
+  workflow_dispatch:
+
+jobs:
+  evaluate:
+    name: Evaluate modeling.star-schema-ecommerce
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: rundle
+          POSTGRES_PASSWORD: rundle_dev_password
+          POSTGRES_DB: rundle_warehouse
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U rundle -d rundle_warehouse"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+
+    env:
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGUSER: rundle
+      PGPASSWORD: rundle_dev_password
+      PGDATABASE: rundle_warehouse
+      DBT_PROFILES_DIR: ${{ github.workspace }}/.dbt
+
+    steps:
+      - name: Checkout learner fork
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Materialize dbt profile
+        run: |
+          mkdir -p .dbt
+          cp profiles.yml.example .dbt/profiles.yml
+
+      - name: Wait for Postgres
+        run: |
+          for i in $(seq 1 30); do
+            if pg_isready -h localhost -U rundle -d rundle_warehouse >/dev/null 2>&1; then
+              echo "postgres ready"
+              break
+            fi
+            sleep 2
+          done
+
+      - name: Generate fixtures if missing (deterministic, seed=42)
+        # The OLTP-dump CSVs are not committed (they are large and trivially
+        # regenerable). The generator is byte-for-byte deterministic.
+        run: |
+          if [ ! -f fixtures/oltp_dump/order_lines.csv ]; then
+            echo "Fixtures missing, regenerating from seeded script..."
+            python -m fixtures.generate_fixtures
+          else
+            echo "Fixtures present, skipping generation."
+          fi
+
+      - name: Load bronze schema from CSVs
+        run: python -m fixtures.load_bronze
+
+      - name: Run evaluation rubric
+        run: pytest tests/ -v --tb=short

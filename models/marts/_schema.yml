@@ -1,0 +1,145 @@
+version: 2
+
+# Marts layer — the star schema.
+#
+# What CI verifies on top of dbt's generic tests:
+#   - tests/grain_order_line.sql (singular) — fact grain is one row per (order_id, line_number).
+#   - tests/conformed_dim_customer.sql (singular) — every sk_customer present in
+#     fct_returns also resolves through dim_customer when joined from fct_order_lines
+#     (the conformed-dim invariant: both facts share the SAME customer dim).
+#   - tests/role_playing_date.sql (singular) — ship_date >= order_date for > 99% rows.
+#   - pytest tests/test_evaluate.py reads this schema.yml to enforce static
+#     invariants (every FK on fct_order_lines has a `relationships` test, etc.).
+#
+# YOU must complete this file. Several columns and tests are intentionally
+# missing. The pytest static checks tell you exactly which.
+
+models:
+  - name: dim_customer
+    description: "Conformed customer dimension. SK = sk_customer. Natural key = customer_id."
+    columns:
+      - name: sk_customer
+        description: "Surrogate key. Generate as md5(customer_id::text) or dense_rank()-based — declare your choice in the model header. NEVER row_number() without an explicit ORDER BY."
+        tests:
+          - unique
+          - not_null
+      - name: customer_id
+        description: "Natural key. Joinable to staging."
+        tests:
+          - unique
+          - not_null
+      # TODO(learner): add country_code, email, segment, signup_date.
+      # TODO(learner): add a `not_null` test on country_code — a missing country
+      # propagates silently into a "Other / NULL" bucket on dashboards, which
+      # finance hates.
+
+  - name: dim_product
+    description: "Conformed product dimension. SCD1 (current state only)."
+    columns:
+      - name: sk_product
+        tests:
+          - unique
+          - not_null
+      - name: product_id
+        tests:
+          - unique
+          - not_null
+      # TODO(learner): add product_name, category_code, list_price_eur.
+
+  - name: dim_channel
+    description: "5-row reference dim."
+    columns:
+      - name: sk_channel
+        tests:
+          - unique
+          - not_null
+      - name: channel_id
+        tests:
+          - unique
+          - not_null
+
+  - name: dim_country
+    description: "Conformed country dim. Joined twice from fct_order_lines (billing + ship-to) and once from fct_returns (ship-to)."
+    columns:
+      - name: sk_country
+        tests:
+          - unique
+          - not_null
+      - name: country_code
+        tests:
+          - unique
+          - not_null
+
+  - name: dim_date
+    description: "Role-playing calendar dim. ONE physical table; facts join it multiple times under aliases."
+    columns:
+      - name: date_key
+        description: "Smart key (YYYYMMDD integer) — the textbook exception to the opaque-SK rule (Kimball Ch. 7)."
+        tests:
+          - unique
+          - not_null
+
+  - name: fct_order_lines
+    description: |
+      Primary fact. Grain: one row per (order_id, line_number).
+      Grain enforced by tests/grain_order_line.sql.
+
+      FK discipline: every FK column listed here MUST carry a `relationships`
+      test. The CI rubric reads this file to confirm static FK coverage.
+
+      Degenerate dimensions (kept on the fact): order_id, line_number.
+
+      Measures (all additive at this grain): quantity, unit_price_eur,
+      discount_eur, line_amount_eur.
+    columns:
+      - name: order_id
+        description: "Degenerate dimension (no dim_order table)."
+        tests:
+          - not_null
+      - name: line_number
+        tests:
+          - not_null
+      - name: sk_customer
+        description: "FK -> dim_customer.sk_customer"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_customer')
+              field: sk_customer
+      - name: sk_product
+        description: "FK -> dim_product.sk_product"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_product')
+              field: sk_product
+      # TODO(learner): add sk_channel with relationships test to dim_channel.
+      # TODO(learner): add sk_country_ship with relationships test to dim_country.
+      # TODO(learner): add order_date_key with relationships test to dim_date.
+      # TODO(learner): add ship_date_key with relationships test to dim_date.
+      #                Both date keys point at the SAME dim_date model — role-playing.
+      # TODO(learner): add measures (quantity, unit_price_eur, discount_eur, line_amount_eur)
+      #                with not_null tests. Negative values are allowed (returns/refunds),
+      #                so no >= 0 test here.
+
+  - name: fct_returns
+    description: |
+      Secondary fact. Grain: one row per returned order (status='returned' in OLTP).
+      Different grain from fct_order_lines on purpose — exercises conformed dims
+      across grains.
+    columns:
+      - name: order_id
+        description: "Natural key at this grain. unique + not_null."
+        tests:
+          - unique
+          - not_null
+      - name: sk_customer
+        description: "FK -> dim_customer.sk_customer (the SAME dim used by fct_order_lines)."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_customer')
+              field: sk_customer
+      # TODO(learner): add sk_channel, sk_country_ship, return_date_key with
+      # relationships tests pointing at the same dims as fct_order_lines.
+      # TODO(learner): add return_amount_eur with a not_null test.
