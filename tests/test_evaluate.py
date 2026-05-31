@@ -143,6 +143,26 @@ def test_adr_present():
             "ton ADR est un journal intime, pas une décision."
         )
 
+    # Explicit decision sentence — defeats the "LLM fills 4 sections with
+    # plausible filler but never picks a side" failure mode. The ADR must
+    # state which alternative you chose AND over which other one.
+    decision_patterns = [
+        r"\bwe chose\b.+\b(over|rather than|instead of)\b",
+        r"\bnous avons choisi\b.+\b(plut[oô]t qu['e]|au lieu d'|contre)\b",
+        r"\bchosen\b.+\b(over|rather than|instead of)\b",
+        r"\bchoisi\b.+\b(plut[oô]t qu['e]|au lieu d'|contre)\b",
+    ]
+    if not any(
+        re.search(p, content, re.IGNORECASE | re.DOTALL) for p in decision_patterns
+    ):
+        pytest.fail(
+            "L'ADR ne contient AUCUNE phrase explicite de décision. Le format "
+            "attendu est : « we chose <option> over <alternative> because… » "
+            "(ou son équivalent FR : « nous avons choisi <X> plutôt que <Y> »). "
+            "Sans ça, ton ADR pose le contexte mais ne tranche pas — c'est "
+            "exactement le pattern qui fait foirer les reviews d'archi en entretien."
+        )
+
 
 # ---------------------------------------------------------------------------
 # Check 2 — fk_coverage_static
