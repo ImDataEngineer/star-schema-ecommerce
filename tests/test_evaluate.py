@@ -163,6 +163,23 @@ def test_adr_present():
             "exactement le pattern qui fait foirer les reviews d'archi en entretien."
         )
 
+    # Substance check : un ADR star vs snowflake vs OBT qui ne parle ni de
+    # grain ni de conformed dimensions ne dit rien sur le vrai trade-off
+    # Kimball. La forme (regex précédente) est facile à satisfaire par un
+    # LLM en 5 min ; ces deux compteurs forcent l'auteur à parler du fond.
+    grain_count = len(re.findall(r"\bgrain\b", content, re.IGNORECASE))
+    conformed_count = len(re.findall(r"\bconformed\b", content, re.IGNORECASE))
+    if grain_count < 2 or conformed_count < 1:
+        pytest.fail(
+            "L'ADR ne traite pas suffisamment les notions Kimball centrales :\n"
+            f"  - 'grain' mentionné {grain_count} fois (attendu : ≥ 2)\n"
+            f"  - 'conformed' mentionné {conformed_count} fois (attendu : ≥ 1)\n"
+            "Sans une discussion du grain (ligne vs commande) ET des "
+            "conformed dimensions (la même `dim_customer` joignable depuis "
+            "deux faits différents), le choix star vs snowflake vs OBT est "
+            "indéfendable techniquement. Étoffe l'ADR sur ces deux points."
+        )
+
 
 # ---------------------------------------------------------------------------
 # Check 2 — fk_coverage_static
