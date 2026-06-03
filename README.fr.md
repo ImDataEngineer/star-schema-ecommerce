@@ -1,3 +1,9 @@
+> *Aussi disponible en [anglais](./README.md).*
+
+[![Template](https://img.shields.io/badge/repo-template-1e293b?style=flat-square)](https://github.com/ImDataEngineer/star-schema-ecommerce/generate) [![iamdataeng.com](https://img.shields.io/badge/iamdataeng.com-2563eb?style=flat-square)](https://iamdataeng.com/projects/modeling.star-schema-ecommerce)
+
+> **Contexte.** Template pédagogique de [iamdataeng.com/projects/modeling.star-schema-ecommerce](https://iamdataeng.com/projects/modeling.star-schema-ecommerce). Fork, complète les TODO, push, reçois un verdict CI pédagogique. Pas un projet open source maintenu, un exercice évalué.
+
 # Star schema Kimball avec intégrité prouvée en CI — `modeling.star-schema-ecommerce`
 
 > **Niveau** : intermédiaire (mid) · **Durée estimée** : ~14 h
@@ -8,7 +14,7 @@ Ce projet est ton flagship d'entretien. Quand un recruteur te demande
 « raconte-moi ton dernier projet de modélisation dimensionnelle », c'est
 celui-là. Pas un tuto. Un exercice qui exige du grain explicite, des
 dimensions conformées, du role-playing, et un ADR défendu — exactement les
-choses que 80 % des candidats fument à l'oral.
+choses que 80 % des candidats foirent à l'oral.
 
 ---
 
@@ -178,7 +184,7 @@ pytest tests/ -v
 ```
 
 Quand les 6 checks pytest passent en local, **commit + push** sur ton fork.
-La CI GitHub Actions rejoue la même rubric et l'app IAmDataEng affiche le
+La CI GitHub Actions rejoue la même rubric et l'app IamDataEngineer affiche le
 verdict dans ton dashboard.
 
 ---
@@ -280,6 +286,6 @@ Le projet est dimensionné pour 14 h. Si tu galères au-delà :
    — c'est ce que Postgres exécute, pas ce que tu as écrit dans le
    template Jinja.
 4. Ouvre une issue dans ton fork avec le label `help-wanted` — la
-   communauté IAmDataEng y passe.
+   communauté IamDataEngineer y passe.
 
 Bonne route.

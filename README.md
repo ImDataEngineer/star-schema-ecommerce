@@ -1,3 +1,9 @@
+> *Also available in [French](./README.fr.md).*
+
+[![Template](https://img.shields.io/badge/repo-template-1e293b?style=flat-square)](https://github.com/ImDataEngineer/star-schema-ecommerce/generate) [![iamdataeng.com](https://img.shields.io/badge/iamdataeng.com-2563eb?style=flat-square)](https://iamdataeng.com/projects/modeling.star-schema-ecommerce)
+
+> **Context.** Coursework template from [iamdataeng.com/projects/modeling.star-schema-ecommerce](https://iamdataeng.com/projects/modeling.star-schema-ecommerce). Fork, complete the TODO blocks, push, receive a pedagogical CI verdict. Not a maintained open-source project, an evaluated exercise.
+
 # Kimball star schema with integrity proven in CI — `modeling.star-schema-ecommerce`
 
 > **Level**: intermediate (mid) · **Estimated time**: ~14 h
@@ -178,7 +184,7 @@ pytest tests/ -v
 ```
 
 Once the 6 pytest checks pass locally, **commit + push** to your fork.
-GitHub Actions CI replays the same rubric and the IAmDataEng app
+GitHub Actions CI replays the same rubric and the IamDataEngineer app
 displays the verdict in your dashboard.
 
 ---
@@ -280,6 +286,6 @@ The project is sized for 14 h. If you're spinning past that:
    — that's what Postgres actually executes, not what you wrote in the
    Jinja template.
 4. Open an issue on your fork with the `help-wanted` label — the
-   IAmDataEng community hangs out there.
+   IamDataEngineer community hangs out there.
 
 Good luck.
